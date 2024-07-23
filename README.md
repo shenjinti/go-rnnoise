@@ -2,12 +2,31 @@
 
 - [rnnoise](https://github.com/xiph/rnnoise.git)
 
+The RNNoise project is a noise suppression library based on a recurrent neural network.
+
+This project is a golang bindings for the RNNoise project.
+
 ## requirements
 
 - gcc (for cgo)
 
-## build
+## get cmd gornnoise
 
+``` bash
+$ go install github.com/shenjinti/go-rnnoise/cmd/gornnoise
+
+#Usage: gornnoise <raw/pcm file> <output file>
 ```
-go get github.com/shenjinti/go-rnnoise/cmd/gornnoise
+
+## Example
+
+```go
+
+func TestProcess(t *testing.T) {
+ r := NewRNNoise()
+ o, vadProb := r.Process([]byte{1, 2, 3, 4, 5, 6})
+ assert.Greater(t, vadProb, 0)
+ assert.Equal(t, []byte{0, 0, 0, 0, 0}, o)
+}
+
 ```
