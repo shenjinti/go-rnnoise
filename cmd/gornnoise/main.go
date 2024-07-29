@@ -36,7 +36,7 @@ func main() {
 		if n != len(frame) {
 			break
 		}
-		out, _ := rnnoise.Process(frame)
+		out := rnnoise.Process(frame)
 		outFile.Write(out)
 	}
 	fmt.Println("Output file:", args[1])

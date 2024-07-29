@@ -48,16 +48,36 @@ func destroy(r *RNNoise) {
 	}
 }
 
-func (r *RNNoise) Process(in []byte) ([]byte, float32) {
-	frame := make([]float32, len(in)/2)
-	for i := 0; i < len(in)/2; i++ {
-		frame[i] = float32(int16(in[i*2]) | int16(in[i*2+1])<<8)
+func bytesToF32Frame(b []byte) []float32 {
+	f := make([]float32, GetFrameSize())
+	for i := 0; i < len(b)/2; i++ {
+		f[i] = float32(int16(b[i*2]) | int16(b[i*2+1])<<8)
 	}
-	vadProb := C.rnnoise_process_frame(r.inst, (*C.float)(unsafe.Pointer(&frame[0])), (*C.float)(unsafe.Pointer(&frame[0])))
-	out := make([]byte, len(in))
-	for i := 0; i < len(frame); i++ {
-		out[i*2] = byte(int(frame[i]) & 0xff)
-		out[i*2+1] = byte(int(frame[i]) >> 8)
+	return f
+}
+
+func f32FrameToBytes(origLen int, f []float32) []byte {
+	b := make([]byte, origLen)
+	for i := 0; i < origLen/2; i++ {
+		b[i*2] = byte(int(f[i]) & 0xff)
+		b[i*2+1] = byte(int(f[i]) >> 8)
 	}
-	return out, float32(vadProb)
+	return b
+}
+
+func (r *RNNoise) Process(in []byte) []byte {
+	remain := len(in)
+	var out []byte
+	for remain > 0 {
+		bufLen := len(in)
+		if len(in) > GetFrameSize()*2 {
+			bufLen = GetFrameSize() * 2
+		}
+		frame := bytesToF32Frame(in[:bufLen])
+		C.rnnoise_process_frame(r.inst, (*C.float)(unsafe.Pointer(&frame[0])), (*C.float)(unsafe.Pointer(&frame[0])))
+		in = in[bufLen:]
+		remain = len(in)
+		out = append(out, f32FrameToBytes(bufLen, frame)...)
+	}
+	return out
 }
