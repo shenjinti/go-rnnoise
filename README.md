@@ -23,10 +23,13 @@ $ go install github.com/shenjinti/go-rnnoise/cmd/gornnoise
 ```go
 
 func TestProcess(t *testing.T) {
- r := NewRNNoise()
- o, vadProb := r.Process([]byte{1, 2, 3, 4, 5, 6})
- assert.Greater(t, vadProb, 0)
- assert.Equal(t, []byte{0, 0, 0, 0, 0}, o)
+	r := NewRNNoise()
+
+	frameSize := GetFrameSize()
+	assert.Equal(t, frameSize, 480)
+	o := r.Process([]byte{1, 2, 3, 4, 5, 6})
+	assert.Equal(t, []byte{0, 0, 0, 0, 0, 0}, o)
 }
+
 
 ```
